@@ -1,0 +1,22 @@
+name: Remote Desktop via RustDesk
+
+on: workflow_dispatch
+
+jobs:
+  remote-desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install desktop environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xfce4 xfce4-goodies xorg dbus-x11
+      - name: Install RustDesk
+        run: |
+          wget https://github.com/rustdesk/rustdesk/releases/latest/download/rustdesk-1.2.3-x86_64.deb
+          sudo dpkg -i rustdesk-1.2.3-x86_64.deb || sudo apt-get install -f -y
+      - name: Start RustDesk
+        run: |
+          export DISPLAY=:0
+          nohup rustdesk --password ${{ secrets.RUSTDESK_PASSWORD }} &
+      - name: Show RustDesk ID
+        run: cat ~/.config/rustdesk/id
