@@ -12,11 +12,11 @@ jobs:
           sudo apt-get install -y xfce4 xfce4-goodies xorg dbus-x11
       - name: Install RustDesk
         run: |
-          wget https://github.com/rustdesk/rustdesk/releases/latest/download/rustdesk-1.2.3-x86_64.deb
-          sudo dpkg -i rustdesk-1.2.3-x86_64.deb || sudo apt-get install -f -y
+          wget https://github.com/rustdesk/rustdesk/releases/download/1.4.0/rustdesk-1.4.0-x86_64.deb
+          sudo dpkg -i rustdesk-1.4.0-x86_64.deb || sudo apt-get install -f -y
       - name: Start RustDesk
         run: |
           export DISPLAY=:0
-          nohup rustdesk --password ${{ secrets.RUSTDESK_PASSWORD }} &
+          nohup rustdesk --password "R0und3mu" &
       - name: Show RustDesk ID
         run: cat ~/.config/rustdesk/id
