@@ -1,22 +1,38 @@
-name: Remote Desktop via RustDesk
+name: RDP
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
 
 jobs:
-  remote-desktop:
-    runs-on: ubuntu-latest
+  rdp:
+    runs-on: windows-latest
     steps:
-      - name: Install desktop environment
+      - name: Download cloudflared
         run: |
-          sudo apt-get update
-          sudo apt-get install -y xfce4 xfce4-goodies xorg dbus-x11
-      - name: Install RustDesk
+          Invoke-WebRequest -Uri https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe
+
+      - name: Enable and start RDP
         run: |
-          wget https://github.com/rustdesk/rustdesk/releases/download/1.4.0/rustdesk-1.4.0-x86_64.deb
-          sudo dpkg -i rustdesk-1.4.0-x86_64.deb || sudo apt-get install -f -y
-      - name: Start RustDesk
+          Set-Service -Name TermService -StartupType Automatic
+          Start-Service -Name TermService
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+      - name: Set random password
+        id: userinfo
         run: |
-          export DISPLAY=:0
-          nohup rustdesk --password "R0und3mu" &
-      - name: Show RustDesk ID
-        run: cat ~/.config/rustdesk/id
+          $username = $env:USERNAME
+          $password = [System.Web.Security.Membership]::GeneratePassword(32,3)
+          net user $username $password
+          Write-Output "::set-output name=username::$username"
+          Write-Output "::set-output name=password::$password"
+
+      - name: Start cloudflared tunnel (anonymous)
+        run: |
+          Start-Process -NoNewWindow -FilePath .\cloudflared.exe -ArgumentList "tunnel --url rdp://localhost:3389"
+          Start-Sleep -Seconds 10
+
+      - name: Show credentials
+        run: |
+          Write-Host "RDP Username: ${{ steps.userinfo.outputs.username }}"
+          Write-Host "RDP Password: ${{ steps.userinfo.outputs.password }}"
+          Write-Host "Check the previous step's logs for the .trycloudflare.com URL."
