@@ -6,6 +6,7 @@ on:
 jobs:
   rdp:
     runs-on: windows-latest
+    timeout-minutes: 240  # 4 hours
     steps:
       - name: Download cloudflared
         run: |
@@ -48,3 +49,10 @@ jobs:
           Write-Host "Then, open Remote Desktop Client and connect to 127.0.0.1:3389"
           Write-Host ""
           Write-Host "⚠️ The tunnel is PUBLIC. Anyone with the URL can access the port until the job completes."
+
+      - name: Keep runner alive for 4 hours
+        run: |
+          for ($i=0; $i -lt 240; $i++) {
+            Write-Host "Runner alive: $i minute(s)"
+            Start-Sleep -Seconds 60
+          }
